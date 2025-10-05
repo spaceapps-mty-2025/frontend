@@ -12,7 +12,7 @@ interface PredictionResponse {
 }
 
 interface FormData {
-  // Parámetros obligatorios
+  // Campos obligatorios (9)
   period: string;
   duration: string;
   transit_depth: string;
@@ -22,26 +22,19 @@ interface FormData {
   stellar_eff_temp: string;
   stellar_logg: string;
   stellar_radius: string;
-  ra: string;
-  dec: string;
-  koi_model_snr: string;
-  stellar_dist: string;
-  
-  // Parámetros opcionales adicionales
-  koi_impact?: string;
-  koi_duration?: string;
-  koi_depth?: string;
-  koi_prad?: string;
-  koi_teq?: string;
-  koi_insol?: string;
-  koi_steff?: string;
-  koi_slogg?: string;
-  koi_srad?: string;
-  koi_quarters?: string;
+
+  // Campos opcionales recomendados (6)
+  koi_model_snr?: string;
+  koi_fpflag_nt?: string;
+  koi_fpflag_ss?: string;
+  koi_fpflag_co?: string;
+  ra?: string;
+  dec?: string;
 }
 
 export default function ExoplanetPredictor() {
   const [formData, setFormData] = useState<FormData>({
+    // Solo valores por defecto para campos obligatorios
     period: '8.7',
     duration: '3.1',
     transit_depth: '450.0',
@@ -51,10 +44,6 @@ export default function ExoplanetPredictor() {
     stellar_eff_temp: '5750',
     stellar_logg: '4.5',
     stellar_radius: '1.0',
-    ra: '295.5',
-    dec: '42.1',
-    koi_model_snr: '22.0',
-    stellar_dist: '300.2',
   });
 
   const [prediction, setPrediction] = useState<PredictionResponse | null>(null);
@@ -111,10 +100,10 @@ export default function ExoplanetPredictor() {
     <div className="max-w-6xl mx-auto">
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-6 md:p-8 border border-white/20">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Parámetros Obligatorios del Planeta */}
+          {/* Parámetros Obligatorios */}
           <div>
             <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-              🌍 Parámetros del Planeta (Obligatorios)
+              ⭐ Parámetros Obligatorios
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
@@ -218,15 +207,7 @@ export default function ExoplanetPredictor() {
                   placeholder="210.0"
                 />
               </div>
-            </div>
-          </div>
 
-          {/* Parámetros Obligatorios de la Estrella */}
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-              ⭐ Parámetros de la Estrella (Obligatorios)
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label htmlFor="stellar_eff_temp" className={labelClasses}>
                   Temperatura Efectiva Estelar (K) *
@@ -246,7 +227,7 @@ export default function ExoplanetPredictor() {
 
               <div>
                 <label htmlFor="stellar_logg" className={labelClasses}>
-                  Log g Estelar *
+                  Gravedad Estelar (log g) *
                 </label>
                 <input
                   type="number"
@@ -277,86 +258,10 @@ export default function ExoplanetPredictor() {
                   placeholder="1.0"
                 />
               </div>
-
-              <div>
-                <label htmlFor="stellar_dist" className={labelClasses}>
-                  Distancia Estelar (pc) *
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  id="stellar_dist"
-                  name="stellar_dist"
-                  value={formData.stellar_dist}
-                  onChange={handleInputChange}
-                  required
-                  className={inputClasses}
-                  placeholder="300.2"
-                />
-              </div>
             </div>
           </div>
 
-          {/* Parámetros Obligatorios de Coordenadas */}
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-              📍 Coordenadas y Señal (Obligatorios)
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="ra" className={labelClasses}>
-                  Ascensión Recta (grados) *
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  id="ra"
-                  name="ra"
-                  value={formData.ra}
-                  onChange={handleInputChange}
-                  required
-                  className={inputClasses}
-                  placeholder="295.5"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="dec" className={labelClasses}>
-                  Declinación (grados) *
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  id="dec"
-                  name="dec"
-                  value={formData.dec}
-                  onChange={handleInputChange}
-                  required
-                  className={inputClasses}
-                  placeholder="42.1"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="koi_model_snr" className={labelClasses}>
-                  SNR del Modelo KOI *
-                </label>
-                <input
-                  type="number"
-                  step="any"
-                  id="koi_model_snr"
-                  name="koi_model_snr"
-                  value={formData.koi_model_snr}
-                  onChange={handleInputChange}
-                  required
-                  className={inputClasses}
-                  placeholder="22.0"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Parámetros Opcionales Avanzados */}
+          {/* Parámetros Opcionales Recomendados */}
           <div>
             <button
               type="button"
@@ -364,172 +269,124 @@ export default function ExoplanetPredictor() {
               className="w-full flex items-center justify-between px-4 py-3 bg-white/5 hover:bg-white/10 rounded-lg transition text-white font-medium"
             >
               <span className="flex items-center gap-2">
-                🔬 Parámetros Adicionales (Opcionales - Mejoran la Precisión)
+                🔬 Parámetros Opcionales Recomendados (Mejoran la Precisión)
               </span>
               <span className="text-2xl">{showAdvanced ? '−' : '+'}</span>
             </button>
 
             {showAdvanced && (
-              <div className="mt-4 p-4 bg-white/5 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <label htmlFor="koi_impact" className={labelClasses}>
-                      Parámetro de Impacto KOI
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      id="koi_impact"
-                      name="koi_impact"
-                      value={formData.koi_impact || ''}
-                      onChange={handleInputChange}
-                      className={inputClasses}
-                      placeholder="Opcional"
-                    />
-                  </div>
+              <div className="mt-4 p-4 bg-white/5 rounded-lg space-y-6">
+                {/* Calidad de Señal y Detección de Falsos Positivos */}
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-3">🎯 Calidad de Señal y Detección</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <label htmlFor="koi_model_snr" className={labelClasses}>
+                        Señal a Ruido (SNR)
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        id="koi_model_snr"
+                        name="koi_model_snr"
+                        value={formData.koi_model_snr || ''}
+                        onChange={handleInputChange}
+                        className={inputClasses}
+                        placeholder="Nivel de claridad de la señal"
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="koi_duration" className={labelClasses}>
-                      Duración KOI (horas)
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      id="koi_duration"
-                      name="koi_duration"
-                      value={formData.koi_duration || ''}
-                      onChange={handleInputChange}
-                      className={inputClasses}
-                      placeholder="Opcional"
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="koi_fpflag_nt" className={labelClasses}>
+                        ¿Señal no es tránsito? (0/1)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="1"
+                        id="koi_fpflag_nt"
+                        name="koi_fpflag_nt"
+                        value={formData.koi_fpflag_nt || ''}
+                        onChange={handleInputChange}
+                        className={inputClasses}
+                        placeholder="Curva de luz anómala"
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="koi_depth" className={labelClasses}>
-                      Profundidad KOI (ppm)
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      id="koi_depth"
-                      name="koi_depth"
-                      value={formData.koi_depth || ''}
-                      onChange={handleInputChange}
-                      className={inputClasses}
-                      placeholder="Opcional"
-                    />
-                  </div>
+                    <div>
+                      <label htmlFor="koi_fpflag_ss" className={labelClasses}>
+                        ¿Indica eclipse estelar? (0/1)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="1"
+                        id="koi_fpflag_ss"
+                        name="koi_fpflag_ss"
+                        value={formData.koi_fpflag_ss || ''}
+                        onChange={handleInputChange}
+                        className={inputClasses}
+                        placeholder="Señal de otra estrella"
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="koi_prad" className={labelClasses}>
-                      Radio del Planeta KOI (R⊕)
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      id="koi_prad"
-                      name="koi_prad"
-                      value={formData.koi_prad || ''}
-                      onChange={handleInputChange}
-                      className={inputClasses}
-                      placeholder="Opcional"
-                    />
+                    <div>
+                      <label htmlFor="koi_fpflag_co" className={labelClasses}>
+                        ¿Centroide desplazado? (0/1)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        max="1"
+                        id="koi_fpflag_co"
+                        name="koi_fpflag_co"
+                        value={formData.koi_fpflag_co || ''}
+                        onChange={handleInputChange}
+                        className={inputClasses}
+                        placeholder="Señal no viene del objetivo"
+                      />
+                    </div>
                   </div>
+                </div>
 
-                  <div>
-                    <label htmlFor="koi_teq" className={labelClasses}>
-                      Temperatura de Equilibrio KOI (K)
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      id="koi_teq"
-                      name="koi_teq"
-                      value={formData.koi_teq || ''}
-                      onChange={handleInputChange}
-                      className={inputClasses}
-                      placeholder="Opcional"
-                    />
-                  </div>
+                {/* Coordenadas */}
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-3">📍 Coordenadas Celestiales</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="ra" className={labelClasses}>
+                        Ascensión Recta (RA)
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        id="ra"
+                        name="ra"
+                        value={formData.ra || ''}
+                        onChange={handleInputChange}
+                        className={inputClasses}
+                        placeholder="Longitud celestial"
+                      />
+                    </div>
 
-                  <div>
-                    <label htmlFor="koi_insol" className={labelClasses}>
-                      Flujo de Insolación KOI (F⊕)
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      id="koi_insol"
-                      name="koi_insol"
-                      value={formData.koi_insol || ''}
-                      onChange={handleInputChange}
-                      className={inputClasses}
-                      placeholder="Opcional"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="koi_steff" className={labelClasses}>
-                      Temperatura Efectiva Estelar KOI (K)
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      id="koi_steff"
-                      name="koi_steff"
-                      value={formData.koi_steff || ''}
-                      onChange={handleInputChange}
-                      className={inputClasses}
-                      placeholder="Opcional"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="koi_slogg" className={labelClasses}>
-                      Log g Estelar KOI
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      id="koi_slogg"
-                      name="koi_slogg"
-                      value={formData.koi_slogg || ''}
-                      onChange={handleInputChange}
-                      className={inputClasses}
-                      placeholder="Opcional"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="koi_srad" className={labelClasses}>
-                      Radio Estelar KOI (R☉)
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      id="koi_srad"
-                      name="koi_srad"
-                      value={formData.koi_srad || ''}
-                      onChange={handleInputChange}
-                      className={inputClasses}
-                      placeholder="Opcional"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="koi_quarters" className={labelClasses}>
-                      Trimestres de Observación KOI
-                    </label>
-                    <input
-                      type="number"
-                      step="any"
-                      id="koi_quarters"
-                      name="koi_quarters"
-                      value={formData.koi_quarters || ''}
-                      onChange={handleInputChange}
-                      className={inputClasses}
-                      placeholder="Opcional"
-                    />
+                    <div>
+                      <label htmlFor="dec" className={labelClasses}>
+                        Declinación (Dec)
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        id="dec"
+                        name="dec"
+                        value={formData.dec || ''}
+                        onChange={handleInputChange}
+                        className={inputClasses}
+                        placeholder="Latitud celestial"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
