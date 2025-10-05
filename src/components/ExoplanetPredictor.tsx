@@ -11,6 +11,17 @@ interface PredictionResponse {
   };
 }
 
+interface StarAnalysisResponse {
+  image_url: string;
+  message: string;
+  parameters: {
+    duration: number;
+    period: number;
+    transit_time: number;
+  };
+  star_id: string;
+}
+
 interface FormData {
   // Campos obligatorios (9)
   period: string;
@@ -51,6 +62,12 @@ export default function ExoplanetPredictor() {
   const [error, setError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  // Estados para análisis de estrella
+  const [starId, setStarId] = useState('');
+  const [starAnalysis, setStarAnalysis] = useState<StarAnalysisResponse | null>(null);
+  const [starLoading, setStarLoading] = useState(false);
+  const [starError, setStarError] = useState<string | null>(null);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -90,6 +107,47 @@ export default function ExoplanetPredictor() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStarAnalysis = async () => {
+    if (!starId.trim()) {
+      setStarError('Por favor ingresa un ID de estrella');
+      return;
+    }
+
+    setStarLoading(true);
+    setStarError(null);
+    setStarAnalysis(null);
+
+    try {
+      const response = await fetch(`/api/analyze-star/${starId.trim()}`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al analizar la estrella');
+      }
+
+      const data: StarAnalysisResponse = await response.json();
+      setStarAnalysis(data);
+    } catch (err: any) {
+      setStarError(err.message || 'Lo sentimos, no encontramos curva de luz para tu estrella');
+      console.error(err);
+    } finally {
+      setStarLoading(false);
+    }
+  };
+
+  const handleDownloadImage = () => {
+    if (starAnalysis?.image_url) {
+      const link = document.createElement('a');
+      link.href = starAnalysis.image_url;
+      link.download = `curva_luz_${starAnalysis.star_id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -466,6 +524,116 @@ export default function ExoplanetPredictor() {
             </div>
           </div>
         )}
+
+        {/* Sección de Análisis de Curva de Luz */}
+        <div className="mt-12 pt-8 border-t border-white/20">
+          <div className="text-center mb-6">
+            <h3 className="text-2xl font-bold text-white mb-2">
+              ✨ ¿Te interesa saber la curva de luz de tu estrella?
+            </h3>
+            <p className="text-gray-300">
+              Ingresa el ID de tu estrella para obtener su curva de luz
+            </p>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4 items-end max-w-2xl mx-auto">
+            <div className="flex-1">
+              <label htmlFor="starId" className={labelClasses}>
+                ID de Estrella (KIC)
+              </label>
+              <input
+                type="text"
+                id="starId"
+                value={starId}
+                onChange={(e) => setStarId(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleStarAnalysis()}
+                className={inputClasses}
+                placeholder="Ej: 6922244"
+              />
+            </div>
+            <button
+              onClick={handleStarAnalysis}
+              disabled={starLoading}
+              className="px-6 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold rounded-lg shadow-lg transform transition hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {starLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Analizando...
+                </span>
+              ) : (
+                '🔍 Analizar'
+              )}
+            </button>
+          </div>
+
+          {/* Error de análisis de estrella */}
+          {starError && (
+            <div className="mt-6 p-4 bg-red-500/20 border border-red-500 rounded-lg max-w-2xl mx-auto">
+              <p className="text-red-200 text-center">😔 {starError}</p>
+            </div>
+          )}
+
+          {/* Resultados del análisis de estrella */}
+          {starAnalysis && (
+            <div className="mt-6 space-y-4">
+              <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-white/30 rounded-xl p-6">
+                <h3 className="text-2xl font-bold text-white mb-4 text-center">
+                  📈 Curva de Luz - {starAnalysis.star_id}
+                </h3>
+
+                {/* Imagen de la curva de luz */}
+                <div className="bg-white/10 rounded-lg p-4 mb-4">
+                  <img
+                    src={starAnalysis.image_url}
+                    alt={`Curva de luz de ${starAnalysis.star_id}`}
+                    className="w-full h-auto rounded-lg"
+                  />
+                </div>
+
+                {/* Parámetros detectados */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="bg-white/10 rounded-lg p-4 text-center">
+                    <p className="text-gray-300 text-sm mb-1">Período</p>
+                    <p className="text-xl font-bold text-white">{starAnalysis.parameters?.period?.toFixed(4)} días</p>
+                  </div>
+
+                  <div className="bg-white/10 rounded-lg p-4 text-center">
+                    <p className="text-gray-300 text-sm mb-1">Duración</p>
+                    <p className="text-xl font-bold text-white">{starAnalysis.parameters?.duration.toFixed(4)} horas</p>
+                  </div>
+
+                  <div className="bg-white/10 rounded-lg p-4 text-center">
+                    <p className="text-gray-300 text-sm mb-1">Tiempo de Tránsito</p>
+                    <p className="text-xl font-bold text-white">{starAnalysis.parameters?.transit_time.toFixed(4)}</p>
+                  </div>
+                </div>
+
+                {/* Botón de descarga */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleDownloadImage}
+                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold rounded-lg shadow-lg transform transition hover:scale-105 flex items-center gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                    Descargar Imagen
+                  </button>
+                </div>
+
+                <div className="mt-4 p-4 bg-white/5 rounded-lg">
+                  <p className="text-gray-300 text-sm text-center">
+                    ✅ {starAnalysis.message}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
